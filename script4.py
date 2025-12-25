@@ -14,6 +14,7 @@ from tkinter import ttk
 from tkinter import simpledialog
 import sys
 import pandas as pd
+from dotenv import load_dotenv
 
 #-- Declaration des Fonctions et des procedures du programme----------------------------------------------------------------
 
@@ -300,7 +301,7 @@ def new_expense_data(notion, database_id, text, date, totalAmount, Title,c):
             "Accounts": {
                 "relation": [
                     {
-                    "id": "1552af85af628025a148fcc29bf736a8"  # Remplacez account_page_id par l'ID de la page liée
+                    "id": os.getenv("ACCOUNT_LINKING_ID")  # Remplacez account_page_id par l'ID de la page liée
                 }
             ]
             },
@@ -349,7 +350,7 @@ def new_income_data(notion, income_database_id, typesDeDepense,dates,montant):
             "Accounts": {
                 "relation": [
                     {
-                    "id": "1552af85af628025a148fcc29bf736a8"  # Remplacez account_page_id par l'ID de la page liée
+                    "id": os.getenv("ACCOUNT_LINKING_ID")  # Remplacez account_page_id par l'ID de la page liée
                 }
             ]
         }
@@ -545,14 +546,20 @@ def afficher_liste():
 #--- Main procedure -----------------------------------------------------------
 def main():
 
+    # Load environment variables
+    load_dotenv()
+
     # variable declaration
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    repertoires = [r'C:\Users\PC\iCloudDrive\Transaction', r'C:\Users\Walid\iCloudDrive\Transaction']
+    pytesseract.pytesseract.tesseract_cmd = os.getenv("TESSERACT_PATH", r'C:\Program Files\Tesseract-OCR\tesseract.exe')
+
+    # Parse transaction directories from environment variable
+    transaction_dirs_str = os.getenv("TRANSACTION_DIRS", r'C:\Users\PC\iCloudDrive\Transaction,C:\Users\Walid\iCloudDrive\Transaction')
+    repertoires = [dir.strip() for dir in transaction_dirs_str.split(',')]
 
     # Notion DataBase
-    notion = Client(auth="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")
-    expense_database_id = "1552af85af62815ab8aefb5dc70f1bd1"
-    income_database_id = "1552af85af62818ab379dd7706d194dd"
+    notion = Client(auth=os.getenv("NOTION_API_TOKEN"))
+    expense_database_id = os.getenv("EXPENSE_DATABASE_ID")
+    income_database_id = os.getenv("INCOME_DATABASE_ID")
 
     global chemin_valide
 
