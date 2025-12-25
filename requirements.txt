@@ -1,6 +1,6 @@
-Pillow
-pytesseract
-notion-client
-pandas
-openpyxl
-python-dotenv
+Pillow==11.3.0
+pytesseract==0.3.13
+notion-client==2.4.0
+pandas==2.3.1
+openpyxl==3.1.5
+python-dotenv==1.2.1
