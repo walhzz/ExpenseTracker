@@ -12,12 +12,13 @@ Orchestrates the entire workflow:
 import sys
 import pytesseract
 from notion_client import Client
+import questionary
 
 from src.utils import (
     init_config,
     get_tesseract_path,
     get_transaction_dirs,
-    set_chemin_valide,
+    set_valid_path,
     find_valid_directory,
     find_jpeg_files,
     get_notion_token,
@@ -34,7 +35,7 @@ def main():
     """
     Main application workflow.
     """
-    print("Pillow fonctionne !")
+    print("Pillow works!")
     print("=" * 50)
     print("Expense Tracker v2.0")
     print("=" * 50)
@@ -52,10 +53,10 @@ def main():
     directories = get_transaction_dirs()
     try:
         valid_directory = find_valid_directory(directories)
-        set_chemin_valide(valid_directory)
-        print(f"[OK] Repertoire valide trouve : {valid_directory}")
+        set_valid_path(valid_directory)
+        print(f"[OK] Valid directory found: {valid_directory}")
     except ValueError as e:
-        print(f"[ERROR] Erreur finale : {e}")
+        print(f"[ERROR] Final error: {e}")
         sys.exit(1)
 
     # 4. Initialize Notion client
@@ -83,9 +84,12 @@ def main():
     data = parse_desjardins_statement(text_lines)
 
     # 7. User confirmation to continue
-    rep = input("\n continue ?(YES) ")
+    continue_upload = questionary.confirm(
+        "Continue to upload transactions to Notion?",
+        default=True
+    ).ask()
 
-    if rep != 'YES':
+    if not continue_upload:
         print('Shut Down!')
         sys.exit()
 

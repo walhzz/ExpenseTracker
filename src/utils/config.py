@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Module-level private variables for global state
 _config = {}
-_chemin_valide = None
+_valid_path = None
 
 
 def init_config():
@@ -46,25 +46,25 @@ def get_config(key, default=None):
     return _config.get(key, default)
 
 
-def set_chemin_valide(path):
+def set_valid_path(path):
     """
     Set the global valid directory path.
 
     Args:
         path: Valid directory path to store
     """
-    global _chemin_valide
-    _chemin_valide = path
+    global _valid_path
+    _valid_path = path
 
 
-def get_chemin_valide():
+def get_valid_path():
     """
     Get the global valid directory path.
 
     Returns:
         The stored valid directory path
     """
-    return _chemin_valide
+    return _valid_path
 
 
 def get_tesseract_path():

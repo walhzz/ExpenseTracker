@@ -5,6 +5,7 @@ Handles expense categorization with pattern matching and interactive learning.
 """
 
 import sys
+import questionary
 from src.utils import (
     load_json,
     save_json,
@@ -46,42 +47,58 @@ def categorize_expense(expense_description, date, amount):
             if expense_description in pattern:
                 return category
 
-    print(f'!!!! LA DEPENSE: {expense_description}, n\'est pas dans la liste!!!! ')
+    print(f'!!!! EXPENSE: {expense_description}, is not in the list!!!! ')
 
-    repeat = True
-    save_it = 'YES'
+    save_pattern = True
 
-    # Interactive category selection loop
-    while repeat:
-        print('if need context, \n ENTER : IDK ')
-        element = input(f'entre une catergoie parmis: {categories}\n')
+    # Interactive category selection with menu
+    while True:
+        # Create choices with categories plus special options
+        choices = categories + ['─── Special Options ───', 'Show Details', 'Exit Program']
 
-        if element in categories:
-            if save_it == 'YES':
-                category_file = get_category_file_path(element, categories_dir)
+        selected = questionary.select(
+            f'Select a category for: {expense_description[:50]}...',
+            choices=choices,
+            use_shortcuts=True,
+            use_arrow_keys=True
+        ).ask()
+
+        # Handle special options
+        if selected == 'Show Details':
+            print('\n' + '=' * 60)
+            print(f'Detail: {expense_description}')
+            print(f'Date: {date}')
+            print(f'Amount: {amount}')
+            print('=' * 60 + '\n')
+
+            save_pattern = questionary.confirm(
+                'Save this expense pattern to the selected category?',
+                default=True
+            ).ask()
+            continue  # Go back to category selection
+
+        elif selected == 'Exit Program':
+            print('Exiting program...')
+            sys.exit()
+
+        elif selected == '─── Special Options ───':
+            continue  # Separator, go back to selection
+
+        elif selected in categories:
+            # Valid category selected
+            if save_pattern:
+                category_file = get_category_file_path(selected, categories_dir)
                 patterns = load_json(category_file)
                 if expense_description not in patterns:
                     patterns.append(expense_description)
                     save_json(category_file, patterns)
-                    print('save it!')
-            else:
-                save_it = 'YES'
-            repeat = False
+                    print(f'✓ Pattern saved to {selected}!')
 
-        elif element == 'IDK':
-            print('Detail :', expense_description, date, amount)
-            while True:
-                answer = input('Save in the Categorie? (YES/NO)')
-                if answer in ['YES', 'NO']:
-                    save_it = answer
-                    break
+            return selected
 
-        elif element == 'break':
-            sys.exit()
         else:
-            print(f'{element} est pas dans la liste ')
-
-    return element
+            print(f'{selected} is not in the list')
+            continue
 
 
 def get_notion_id_for_category(category_name):
@@ -105,13 +122,13 @@ def get_notion_id_for_category(category_name):
     ids = load_json(id_path)
 
     if len(categories) != len(ids):
-        print('Longureur database != id')
+        print('Length database != id')
         sys.exit()
 
     try:
         index = categories.index(category_name)
-        print(f"La valeur de {category_name} est BIEN dans le tableau de ID !")
+        print(f"The value of {category_name} is in the ID array!")
         return ids[index]
     except ValueError:
-        print(f"La valeur de {category_name} n'est pas dans le tableau de ID.")
+        print(f"The value of {category_name} is not in the ID array.")
         return None

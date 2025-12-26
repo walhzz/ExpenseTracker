@@ -7,8 +7,8 @@ Provides configuration management and file operations.
 from src.utils.config import (
     init_config,
     get_config,
-    set_chemin_valide,
-    get_chemin_valide,
+    set_valid_path,
+    get_valid_path,
     get_tesseract_path,
     get_transaction_dirs,
     get_notion_token,
@@ -35,8 +35,8 @@ __all__ = [
     # Config functions
     'init_config',
     'get_config',
-    'set_chemin_valide',
-    'get_chemin_valide',
+    'set_valid_path',
+    'get_valid_path',
     'get_tesseract_path',
     'get_transaction_dirs',
     'get_notion_token',

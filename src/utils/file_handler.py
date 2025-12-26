@@ -21,17 +21,17 @@ def find_jpeg_files(directory):
     Returns:
         List of paths to .jpeg files found
     """
-    chemin_png = glob.glob(os.path.join(directory, '*.jpeg'))
+    jpeg_paths = glob.glob(os.path.join(directory, '*.jpeg'))
 
-    if not chemin_png:
-        print("Aucun fichier jpeg trouvé dans le répertoire.")
+    if not jpeg_paths:
+        print("No jpeg files found in the directory.")
         return []
 
-    print("Fichiers jpeg trouvés :")
-    for fichier in chemin_png:
-        print(fichier)
+    print("Jpeg files found:")
+    for file in jpeg_paths:
+        print(file)
 
-    return chemin_png
+    return jpeg_paths
 
 
 def verify_directory(directory):
@@ -48,8 +48,8 @@ def verify_directory(directory):
         ValueError: If directory doesn't exist
     """
     if not os.path.isdir(directory):
-        raise ValueError(f"Le chemin '{directory}' n'est pas un répertoire valide.")
-    return f"Le répertoire '{directory}' est valide."
+        raise ValueError(f"The path '{directory}' is not a valid directory.")
+    return f"The directory '{directory}' is valid."
 
 
 def find_valid_directory(directories):
@@ -66,15 +66,15 @@ def find_valid_directory(directories):
     Raises:
         ValueError: If none of the directories are valid
     """
-    for chemin in directories:
+    for path in directories:
         try:
-            resultat = verify_directory(chemin)
-            print(resultat)
-            return chemin
+            result = verify_directory(path)
+            print(result)
+            return path
         except ValueError as e:
-            print(f"Erreur détectée : {e}")
+            print(f"Error detected: {e}")
 
-    raise ValueError("Aucun des répertoires fournis n'est valide.")
+    raise ValueError("None of the provided directories are valid.")
 
 
 def save_json(filepath, data):
@@ -103,10 +103,10 @@ def load_json(filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"Le fichier {filepath} n'existe pas, retourne une liste vide.")
+        print(f"The file {filepath} does not exist, returning empty list.")
         return []
     except json.JSONDecodeError:
-        print(f"Le fichier {filepath} est vide ou corrompu, retourne une liste vide.")
+        print(f"The file {filepath} is empty or corrupted, returning empty list.")
         return []
 
 

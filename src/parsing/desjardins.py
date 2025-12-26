@@ -9,6 +9,7 @@ import re
 import os
 import pandas as pd
 from datetime import datetime
+import questionary
 
 
 def remove_line_breaks(text):
@@ -21,10 +22,10 @@ def remove_line_breaks(text):
     Returns:
         List of non-empty lines with whitespace stripped
     """
-    lignes = text.splitlines()
-    lignes_sans_retours = [ligne.strip() for ligne in lignes if ligne.strip()]
-    print('!' + str(lignes_sans_retours))
-    return lignes_sans_retours
+    lines = text.splitlines()
+    lines_without_breaks = [line.strip() for line in lines if line.strip()]
+    print('!' + str(lines_without_breaks))
+    return lines_without_breaks
 
 
 def find_date(text):
@@ -108,9 +109,9 @@ def clean_dataframe_column(dataframe, column):
     Returns:
         New pandas Series without empty or None values
     """
-    colonne_nettoyee = dataframe[column].dropna()
-    colonne_nettoyee = colonne_nettoyee[colonne_nettoyee != ""]
-    return colonne_nettoyee
+    cleaned_column = dataframe[column].dropna()
+    cleaned_column = cleaned_column[cleaned_column != ""]
+    return cleaned_column
 
 
 def parse_desjardins_statement(text_lines):
@@ -168,10 +169,13 @@ def parse_desjardins_statement(text_lines):
 
     print(df_merged)
 
-    rep = input('edit ?')
-
     # Interactive Excel editing loop
-    while rep.upper() == 'YES':
+    edit_data = questionary.confirm(
+        "Do you want to edit the transaction data in Excel?",
+        default=False
+    ).ask()
+
+    while edit_data:
         file_path = "temp_file.xlsx"
 
         df_merged.to_excel(file_path, index=False, engine='openpyxl')
@@ -179,7 +183,9 @@ def parse_desjardins_statement(text_lines):
         print(f"File saved to {file_path}. Please edit the file and save your changes.")
         os.startfile(file_path)  # Windows-specific
 
-        input("Press Enter after you finish editing and save the file...")
+        questionary.press_any_key_to_continue(
+            "Press any key after you finish editing and save the file..."
+        ).ask()
 
         df_merged = pd.read_excel(file_path, engine='openpyxl')
 
@@ -189,7 +195,10 @@ def parse_desjardins_statement(text_lines):
         os.remove(file_path)
         print("Temporary file deleted.")
 
-        rep = input('Edit again? (YES/NO): ')
+        edit_data = questionary.confirm(
+            "Edit again?",
+            default=False
+        ).ask()
 
     A = df_merged["Transaction_df"].tolist()
     B = df_merged["Transaction_tf"].tolist()
@@ -208,21 +217,21 @@ def convert_to_currency(values):
     Returns:
         List of float values (None for unconvertible values)
     """
-    resultat = []
+    result = []
     for value in values:
         if isinstance(value, (float, int)):
-            resultat.append(float(value))
+            result.append(float(value))
             continue
 
         original = value
         try:
             cleaned = value.replace("$", "").replace(",", "").strip()
-            nombre = float(cleaned)
-            resultat.append(nombre)
+            number = float(cleaned)
+            result.append(number)
         except (ValueError, AttributeError):
-            print(f"Impossible de convertir '{original}' en nombre.")
-            resultat.append(None)
-    return resultat
+            print(f"Unable to convert '{original}' to number.")
+            result.append(None)
+    return result
 
 
 def convert_to_iso_dates(dates):
@@ -236,16 +245,16 @@ def convert_to_iso_dates(dates):
     Returns:
         List of ISO formatted date strings (YYYY-MM-DD)
     """
-    resultats = []
+    results = []
     now = datetime.now()
 
     for date in dates:
-        date_cible = datetime.strptime(f"{now.year} {date}", "%Y %b %d")
+        target_date = datetime.strptime(f"{now.year} {date}", "%Y %b %d")
 
         # If date is in the future, use previous year
-        if date_cible > now:
-            date_cible = datetime.strptime(f"{now.year - 1} {date}", "%Y %b %d")
+        if target_date > now:
+            target_date = datetime.strptime(f"{now.year - 1} {date}", "%Y %b %d")
 
-        resultats.append(date_cible.strftime("%Y-%m-%d"))
+        results.append(target_date.strftime("%Y-%m-%d"))
 
-    return resultats
+    return results
