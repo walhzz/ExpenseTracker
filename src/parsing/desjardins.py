@@ -12,6 +12,8 @@ from datetime import datetime
 import questionary
 
 
+
+
 def remove_line_breaks(text):
     """
     Remove line breaks from text and return array of non-empty lines.
@@ -258,3 +260,20 @@ def convert_to_iso_dates(dates):
         results.append(target_date.strftime("%Y-%m-%d"))
 
     return results
+
+#valide_sqc = {['Date de transaction\nJ M', "Date d'inscription\nJ M", 'Description', 'Remises', 'Montant'],}
+
+
+def parsing_extraction_pdf(data):
+    """Parse: FOR_LOOP > Page > Table"""
+    pages = []
+    
+    for page_item in data:  # FOR_LOOP sur les pages
+        page = {"tables": []}
+        
+        for table_item in page_item:  # Parcourir les tables
+            page["tables"].append(table_item)
+        
+        pages.append(page)
+        print(pages)
+    #return pages

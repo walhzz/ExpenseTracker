@@ -6,6 +6,8 @@ Handles image loading and text extraction using Tesseract OCR.
 
 from PIL import Image
 import pytesseract
+import pdfplumber
+import pandas as pd
 
 
 def load_image(image_path):
@@ -50,3 +52,17 @@ def process_multiple_images(image_paths):
         img = load_image(image_path)
         text += ' ' + extract_text_from_image(img)
     return text
+
+
+def extract_table_transactions(pdf_path):
+    transactions_table = []
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+
+            tables = page.extract_tables()
+            transactions_table.append(tables)
+
+    return transactions_table
+            
+                    
