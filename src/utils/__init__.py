@@ -18,7 +18,7 @@ from src.utils.config import (
     get_data_dir,
     get_categories_dir,
     get_screenshots_dir,
-    get_pdf_dir,
+    get_pdf_dir
 )
 
 from src.utils.file_handler import (
@@ -31,7 +31,8 @@ from src.utils.file_handler import (
     get_category_file_path,
     get_database_json_path,
     get_id_json_path,
-    is_file_open
+    is_file_open,
+    remove_file
 )
 
 __all__ = [
@@ -60,5 +61,6 @@ __all__ = [
     'get_category_file_path',
     'get_database_json_path',
     'get_id_json_path',
-    'is_file_open'
+    'is_file_open',
+    'remove_file'
 ]

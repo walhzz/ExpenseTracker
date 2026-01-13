@@ -35,6 +35,14 @@ def is_file_open(file_path: str, timeout: int = 30) -> bool:
         return False  # Pas d'erreur : le fichier est libre
     except OSError:
         return True  # Erreur : le fichier est utilisé
+def remove_file(file_path: str):
+    try:
+        os.remove(file_path)
+        print(f"The file '{file_path}' has been successfully deleted.")
+    except FileNotFoundError:
+        print(f"Error: The file '{file_path}' was not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 def find_jpeg_files(directory):
     """

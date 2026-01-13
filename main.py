@@ -33,7 +33,8 @@ from src.utils import (
     get_income_database_id,
     get_account_linking_id,
     get_pdf_dir,
-    is_file_open
+    is_file_open,
+    remove_file
 )
 from src.ocr import process_multiple_images, extract_table_transactions
 from src.parsing import remove_line_breaks, parse_desjardins_statement, parsing_desjardins_credit_statements_pdf, convert_to_currency, convert_to_iso_dates
@@ -169,6 +170,8 @@ def main():
         descriptions = df['description'].tolist()
         dates = df['date_transaction'].tolist()
         amounts = df['amount'].tolist()
+
+        remove_file(file_path)
 
     print(f"[OK] Found {len(descriptions)} transactions")
 

@@ -45,5 +45,6 @@ temp_file.xlsx
 Thumbs.db
 
 #data
-data/**/*.json
+*.json
 *.pdf
+*.xlsx
