@@ -10,6 +10,7 @@ from src.parsing.desjardins import (
     remove_amount,
     clean_dataframe_column,
     parse_desjardins_statement,
+    parsing_desjardins_credit_statements_pdf,
     convert_to_currency,
     convert_to_iso_dates,
 )
@@ -22,6 +23,7 @@ __all__ = [
     'remove_amount',
     'clean_dataframe_column',
     'parse_desjardins_statement',
+    'parsing_desjardins_credit_statements_pdf',
     'convert_to_currency',
     'convert_to_iso_dates',
 ]

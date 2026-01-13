@@ -16,12 +16,115 @@ from src.utils import (
 )
 
 
-def categorize_expense(expense_description, date, amount):
+def get_expense_class_by_description(expense_description: str) -> dict:
+    """
+    Find a category and expense by description/name
+    Returns a dict with category id and expense name
+    """
+    categories_dir = get_categories_dir()
+    database_path = get_database_json_path(categories_dir)
+    categories = load_json(database_path)
+
+
+    for category in categories:
+        if expense_description in category["expenses"]:
+            return {
+                "id": category["id"],
+                "name": category["name"],
+                "expense": expense_description
+            }
+
+    return None  # Not found
+
+
+def add_expense_description_to_category(expense_description: str, category_name: str):
+    categories_dir = get_categories_dir()
+    database_path = get_database_json_path(categories_dir)
+    categories = load_json(database_path)
+
+    for category in categories:
+        if category_name == category["name"]:
+            # Check if expense already exists
+            if expense_description not in category["expenses"]:
+                category["expenses"].append(expense_description)
+            else:
+                print(f"'{expense_description}' already exists in {category_name}")
+            break
+
+    # Save the updated data
+    save_json(database_path, categories)
+
+
+def categorize_expense(expense_description: str, date: str, amount: float) -> dict:
+    """
+    Categorize an expense interactively with pattern matching and learning.
+    Searches for the expense in existing category patterns. If not found,
+    prompts user for category selection from a list.
+
+    Args:
+        expense_description: Expense description
+        date: Transaction date
+        amount: Amount
+
+    Returns:
+        Dict with category id, name, and expense
+    """
+
+    # First, try to find the expense in existing patterns
+    result = get_expense_class_by_description(expense_description)
+
+    if result:
+        # Found a matching expense
+        print(f"✓ Matched: '{expense_description}' → {result['name']}")
+        return result
+
+    # Not found, prompt user to select a category
+    print(f"\n$ Categorizing: {expense_description} (${amount} on {date})")
+
+    categories_dir = get_categories_dir()
+    database_path = get_database_json_path(categories_dir)
+    categories = load_json(database_path)
+
+    # Create list of category names for selection, with exit option
+    category_choices = [category['name'] for category in categories]
+    category_choices.append("Exit")
+
+    # Use questionary to select category
+    selected_name = questionary.select(
+        "Select category:",
+        choices=category_choices
+    ).ask()
+
+    # Check if user selected exit
+    if selected_name == "Exit":
+        print("Exiting program...")
+        exit()
+
+    # Find the full category dict
+    selected_category = next(cat for cat in categories if cat['name'] == selected_name)
+
+    # Ask if user wants to save this pattern for future use
+    save_pattern = questionary.confirm(
+        f"Save '{expense_description}' to '{selected_category['name']}' for future use?"
+    ).ask()
+
+    if save_pattern:
+        add_expense_description_to_category(expense_description, selected_category["name"])
+        print(f"✓ Pattern saved: '{expense_description}' → {selected_category['name']}")
+
+    # Return the full category dict
+    return {
+        "id": selected_category["id"],
+        "name": selected_category["name"],
+        "expense": expense_description
+    }
+
+def categorize1_expense(expense_description: str, date: str, amount: float) -> str:
     """
     Categorize an expense interactively with pattern matching and learning.
 
-    Searches for the expense in existing category patterns.
-    If not found, prompts user for category and optionally saves the pattern.
+    Searches for the expense in existing category patterns. If not found,
+    prompts user for category and optionally saves the pattern.
 
     Args:
         expense_description: Expense description
@@ -31,74 +134,47 @@ def categorize_expense(expense_description, date, amount):
     Returns:
         Category name assigned to the expense
     """
+
+    # First, try to find the expense in existing patterns
+    result = get_expense_class_by_description(expense_description)
+
+    if result:
+        # Found a matching expense
+        print(f"✓ Matched: '{expense_description}' → {result['name']}")
+        return result["name"]
+
+    # Not found, prompt user to select a category
+    print(f"\n$ Categorizing: {expense_description} (${amount} on {date})")
+
     categories_dir = get_categories_dir()
     database_path = get_database_json_path(categories_dir)
     categories = load_json(database_path)
 
-    # Search through all categories
-    for category in categories:
-        category_file = get_category_file_path(category, categories_dir)
-        patterns = load_json(category_file)
+    # Display available categories
+    print("\nAvailable categories:")
+    for i, category in enumerate(categories, 1):
+        print(f"  {i}. {category['name']}")
 
-        for pattern in patterns:
-            if pattern == []:
-                continue
-
-            if expense_description in pattern:
-                return category
-
-    print(f'!!!! EXPENSE: {expense_description}, is not in the list!!!! ')
-
-    save_pattern = True
-
-    # Interactive category selection with menu
+    # Get user input
     while True:
-        # Create choices with categories plus special options
-        choices = categories + ['─── Special Options ───', 'Show Details', 'Exit Program']
+        try:
+            choice = int(input("\nSelect category (number): "))
+            if 1 <= choice <= len(categories):
+                selected_category = categories[choice - 1]["name"]
+                break
+            else:
+                print("Invalid choice. Please try again.")
+        except ValueError:
+            print("Please enter a valid number.")
 
-        selected = questionary.select(
-            f'Select a category for: {expense_description[:50]}...',
-            choices=choices,
-            use_shortcuts=True,
-            use_arrow_keys=True
-        ).ask()
+    # Ask if user wants to save this pattern for future use
+    save_pattern = input(f"\nSave '{expense_description}' to '{selected_category}' for future use? (y/n): ").lower()
 
-        # Handle special options
-        if selected == 'Show Details':
-            print('\n' + '=' * 60)
-            print(f'Detail: {expense_description}')
-            print(f'Date: {date}')
-            print(f'Amount: {amount}')
-            print('=' * 60 + '\n')
+    if save_pattern == 'y':
+        add_expense_description_to_category(expense_description, selected_category)
+        print(f"✓ Pattern saved: '{expense_description}' → {selected_category}")
 
-            save_pattern = questionary.confirm(
-                'Save this expense pattern to the selected category?',
-                default=True
-            ).ask()
-            continue  # Go back to category selection
-
-        elif selected == 'Exit Program':
-            print('Exiting program...')
-            sys.exit()
-
-        elif selected == '─── Special Options ───':
-            continue  # Separator, go back to selection
-
-        elif selected in categories:
-            # Valid category selected
-            if save_pattern:
-                category_file = get_category_file_path(selected, categories_dir)
-                patterns = load_json(category_file)
-                if expense_description not in patterns:
-                    patterns.append(expense_description)
-                    save_json(category_file, patterns)
-                    print(f'✓ Pattern saved to {selected}!')
-
-            return selected
-
-        else:
-            print(f'{selected} is not in the list')
-            continue
+    return selected_category
 
 
 def get_notion_id_for_category(category_name):

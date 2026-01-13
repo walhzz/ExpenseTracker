@@ -8,8 +8,33 @@ import os
 import glob
 import json
 import sys
+import time
+import openpyxl
+
 from pathlib import Path
 
+
+def is_file_open(file_path: str, timeout: int = 30) -> bool:
+    """
+    Vérifie si un fichier Excel est toujours ouvert.
+
+    Args:
+        file_path: Chemin du fichier Excel
+        timeout: Temps maximum d'attente en secondes
+
+    Returns:
+        True si le fichier est ouvert, False sinon
+    """
+    if not os.path.exists(file_path):
+        return False
+
+    try:
+        # On tente de renommer le fichier sur lui-même.
+        # Si Windows (ou un autre OS) refuse, c'est qu'il est ouvert ailleurs.
+        os.rename(file_path, file_path)
+        return False  # Pas d'erreur : le fichier est libre
+    except OSError:
+        return True  # Erreur : le fichier est utilisé
 
 def find_jpeg_files(directory):
     """
@@ -32,6 +57,29 @@ def find_jpeg_files(directory):
         print(file)
 
     return jpeg_paths
+
+
+def find_pdf_files(directory):
+    """
+    Find all .pdf files in a directory.
+
+    Args:
+        directory: Directory path to search
+
+    Returns:
+        List of paths to .pdf files found
+    """
+    pdf_paths = glob.glob(os.path.join(directory, '*.pdf'))
+
+    if not pdf_paths:
+        print("No PDF files found in the directory.")
+        return []
+
+    print("PDF files found:")
+    for file in pdf_paths:
+        print(file)
+
+    return pdf_paths
 
 
 def verify_directory(directory):
@@ -135,3 +183,5 @@ def get_database_json_path(categories_dir):
 def get_id_json_path(categories_dir):
     """Get path to id.json file."""
     return Path(categories_dir) / 'id.json'
+
+

@@ -55,14 +55,15 @@ def process_multiple_images(image_paths):
 
 
 def extract_table_transactions(pdf_path):
-    transactions_table = []
+    tables_set = []
 
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
+    for path in pdf_path:
+        with pdfplumber.open(path) as pdf:
+            for page in pdf.pages:
+                x = page.extract_tables()
+                for j in x :
+                    tables_set += j
 
-            tables = page.extract_tables()
-            transactions_table.append(tables)
-
-    return transactions_table
+    return tables_set
             
                     

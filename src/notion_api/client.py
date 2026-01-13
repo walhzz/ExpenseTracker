@@ -146,7 +146,35 @@ def create_income_record(notion_client, database_id, description, date, amount, 
     return page_creation_exception(notion_client,new_page_data)
 
 
-def process_transactions(notion_client, expense_db_id, income_db_id, descriptions, dates, amounts, account_id):
+def process(notion_client: str,
+            transaction_class: dict,
+            expense_db_id: str,
+            date: str,
+            amount: float,
+            account_id: str):
+    # Skip if amount is not negative (income, not expense)
+    if amount > 0:
+        return
+
+    description = transaction_class['expense']
+    transaction_id = transaction_class["id"]
+
+    try:
+        # Process expense (negative amount)
+        create_expense_record(
+            notion_client,
+            expense_db_id,
+            description,
+            date,
+            abs(amount),
+            description,
+            transaction_id,
+            account_id)
+    except Exception as e:
+        print(f"Error processing expense: {e}")
+
+
+def process_transactions(notion_client, expense_db_id, descriptions, dates, amounts, account_id):
     """
     Process all transactions and create Notion entries.
 
@@ -172,6 +200,7 @@ def process_transactions(notion_client, expense_db_id, income_db_id, description
             f"descriptions={len(descriptions)}, dates={len(dates)}, amounts={len(amounts)}"
         )
 
+
     # Process each transaction
     for description, date, amount in zip(descriptions, dates, amounts):
         
@@ -180,7 +209,7 @@ def process_transactions(notion_client, expense_db_id, income_db_id, description
             continue
         
         try:
-            if amount < 0:
+            if amount <= 0:
                 # Process expense (negative amount)
                 category = categorize_expense(description, date, amount)
                 category_id = get_notion_id_for_category(category)
@@ -197,14 +226,8 @@ def process_transactions(notion_client, expense_db_id, income_db_id, description
                 )
             else:
                 # Process income (positive amount)
-                create_income_record(
-                    notion_client,
-                    income_db_id,
-                    description,
-                    date,
-                    amount,
-                    account_id
-                )
+                continue
+
         except Exception as e:
             print(f"Error processing transaction '{description}' on {date}: {e}")
             continue

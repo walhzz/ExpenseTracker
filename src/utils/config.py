@@ -113,3 +113,8 @@ def get_categories_dir():
 def get_screenshots_dir():
     """Get the screenshots directory path."""
     return get_data_dir() / 'screenshots'
+
+
+def get_pdf_dir():
+    """Get the PDF files directory path."""
+    return get_data_dir() / 'pdf'

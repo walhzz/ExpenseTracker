@@ -7,6 +7,8 @@ specific to Desjardins bank statements.
 
 import re
 import os
+import sys
+
 import pandas as pd
 from datetime import datetime
 import questionary
@@ -261,19 +263,122 @@ def convert_to_iso_dates(dates):
 
     return results
 
-#valide_sqc = {['Date de transaction\nJ M', "Date d'inscription\nJ M", 'Description', 'Remises', 'Montant'],}
+
+def clean_date(date_str: str) -> str:
+    """Converts '01 12' to ISO 8601 date string, ensuring the date is in the past"""
+    date_str = date_str.strip()
+
+    # Dictionnaire mois
+    months = {
+        '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',
+        '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug',
+        '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec'
+    }
+
+    # Parse day and month
+    parts = date_str.split()
+    if len(parts) != 2:
+        return date_str
+
+    day, month = parts
+    try:
+        month_name = months[month]
+    except KeyError:
+        return date_str
+
+    # Create date object and check if it's in the past
+    current_date = datetime.now()
+    current_year = current_date.year
+
+    date_obj = datetime.strptime(f"{day} {month_name} {current_year}", "%d %b %Y")
+
+    # If date is in the future, use previous year
+    if date_obj > current_date:
+        date_obj = datetime.strptime(f"{day} {month_name} {current_year - 1}", "%d %b %Y")
+
+    return date_obj.strftime("%Y-%m-%d")
 
 
-def parsing_extraction_pdf(data):
-    """Parse: FOR_LOOP > Page > Table"""
-    pages = []
+def parsing_desjardins_credit_statements_pdf(table_set: list[list[str]]) -> pd.DataFrame:
+    expenses = []
+    for i in range(len(table_set) - 1):
+        #if table_set[i] == ['Date', 'Code', 'Description', 'Frais', 'Retrait', 'Dépôt', 'Solde']:
+
+        #    i += 1
+
+        #    date_index = 0
+        #    description_index = 2
+        #    amount_index = 4
+
+        if detect_transaction_table(table_set[i]):
+            i += 2
+
+            date_index = 1
+            description_index = 2
+            amount_index = 4
+        else:
+            continue
+
+        expense_table = table_set[i]
+
+        if len(expense_table) < 5:
+            continue
+        dates = expense_table[date_index].split('\n')
+        descriptions = expense_table[description_index].split('\n')
+        amounts = expense_table[amount_index].split('\n')
+
+        for date, description, amount in zip(dates, descriptions, amounts):
+
+            has_cr = 'CR' in amount
+
+
+            amount_clean = (amount.strip()
+                            .replace(',', '.')
+                            .replace(' ', '')
+                            .replace('%', '')
+                            .replace('$', '')
+                            )
+
+            # Vérifier si c'est un float valide
+            is_valid = 1
+            try:
+
+
+                if has_cr:
+                    amount_clean = abs(float((amount_clean.strip().replace('CR', ''))))
+
+                else:
+                    amount_clean = -abs(float(amount_clean))
+
+            except ValueError:
+                is_valid = 0
+
+
+            try:
+                expenses.append({
+                    'date_transaction': clean_date(date),
+                    'description': description.strip(),
+                    'amount': amount_clean,
+                    'isValid': is_valid
+                    })
+            except ValueError:
+                print(f"Error cleaning the data: '{amount_clean}'")
+                continue
+
+    df = pd.DataFrame(expenses)
+    return df
+
+
+def detect_transaction_table(table: list) -> bool:
+    """Détecte si c'est une table de transactions"""
+
+    if not table or len(table) == 0:
+        return False
     
-    for page_item in data:  # FOR_LOOP sur les pages
-        page = {"tables": []}
-        
-        for table_item in page_item:  # Parcourir les tables
-            page["tables"].append(table_item)
-        
-        pages.append(page)
-        print(pages)
-    #return pages
+    first_elem = table[0]
+    
+    if not isinstance(first_elem, str):
+        return False
+
+    return "Transactions effectuées" in first_elem
+

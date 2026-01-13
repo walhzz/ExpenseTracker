@@ -18,10 +18,12 @@ from src.utils.config import (
     get_data_dir,
     get_categories_dir,
     get_screenshots_dir,
+    get_pdf_dir,
 )
 
 from src.utils.file_handler import (
     find_jpeg_files,
+    find_pdf_files,
     verify_directory,
     find_valid_directory,
     save_json,
@@ -29,6 +31,7 @@ from src.utils.file_handler import (
     get_category_file_path,
     get_database_json_path,
     get_id_json_path,
+    is_file_open
 )
 
 __all__ = [
@@ -46,8 +49,10 @@ __all__ = [
     'get_data_dir',
     'get_categories_dir',
     'get_screenshots_dir',
+    'get_pdf_dir',
     # File handler functions
     'find_jpeg_files',
+    'find_pdf_files',
     'verify_directory',
     'find_valid_directory',
     'save_json',
@@ -55,4 +60,5 @@ __all__ = [
     'get_category_file_path',
     'get_database_json_path',
     'get_id_json_path',
+    'is_file_open'
 ]
