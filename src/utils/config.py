@@ -5,111 +5,133 @@ Handles loading environment variables and managing global application state.
 """
 
 import os
+from typing import Optional
 from dotenv import load_dotenv
 from pathlib import Path
 
 # Module-level private variables for global state
-_config = {}
-_valid_path = None
+_config: dict[str, Optional[str]] = {}
 
 
-def init_config():
-    """
-    Initialize configuration by loading environment variables from .env file.
-    Should be called once at application startup.
+def init_config() -> None:
+    """Initialize configuration by loading environment variables from .env file.
+
+    Loads all required configuration values from environment variables into
+    a module-level dictionary. Should be called once at application startup
+    before accessing any configuration values.
+
+    Returns:
+        None
     """
     global _config
     load_dotenv()
 
     # Load all configuration into the module-level dict
     _config = {
-        'tesseract_path': os.getenv('TESSERACT_PATH', r'C:\Program Files\Tesseract-OCR\tesseract.exe'),
         'transaction_dirs': os.getenv('TRANSACTION_DIRS', r'C:\Users\PC\iCloudDrive\Transaction,C:\Users\Walid\iCloudDrive\Transaction'),
         'notion_token': os.getenv('NOTION_API_TOKEN'),
         'expense_database_id': os.getenv('EXPENSE_DATABASE_ID'),
-        'income_database_id': os.getenv('INCOME_DATABASE_ID'),
         'account_linking_id': os.getenv('ACCOUNT_LINKING_ID'),
     }
 
 
-def get_config(key, default=None):
-    """
-    Get a configuration value by key.
+def set_valid_path(path: str) -> None:
+    """Set the global valid directory path.
+
+    This function is a no-op placeholder for backward compatibility.
+    The valid path is no longer stored globally.
 
     Args:
-        key: Configuration key
-        default: Default value if key not found
+        path: Valid directory path to store (ignored)
 
     Returns:
-        Configuration value or default
+        None
     """
-    return _config.get(key, default)
+    pass
 
 
-def set_valid_path(path):
-    """
-    Set the global valid directory path.
+def get_transaction_dirs() -> list[str]:
+    """Get the list of transaction directories.
 
-    Args:
-        path: Valid directory path to store
-    """
-    global _valid_path
-    _valid_path = path
-
-
-def get_valid_path():
-    """
-    Get the global valid directory path.
+    Retrieves the transaction directories from configuration and splits
+    them into a list of individual directory paths.
 
     Returns:
-        The stored valid directory path
+        List of directory path strings where transactions may be found
     """
-    return _valid_path
-
-
-def get_tesseract_path():
-    """Get the Tesseract OCR executable path."""
-    return _config.get('tesseract_path')
-
-
-def get_transaction_dirs():
-    """Get the list of transaction directories."""
     dirs_str = _config.get('transaction_dirs', '')
     return [d.strip() for d in dirs_str.split(',')]
 
 
-def get_notion_token():
-    """Get the Notion API token."""
+def get_notion_token() -> Optional[str]:
+    """Get the Notion API token.
+
+    Retrieves the Notion API authentication token from configuration.
+
+    Returns:
+        The Notion API token string, or None if not configured
+    """
     return _config.get('notion_token')
 
 
-def get_expense_database_id():
-    """Get the Notion expense database ID."""
+def get_expense_database_id() -> Optional[str]:
+    """Get the Notion expense database ID.
+
+    Retrieves the Notion database ID for storing expense records.
+
+    Returns:
+        The expense database ID string, or None if not configured
+    """
     return _config.get('expense_database_id')
 
 
-def get_income_database_id():
-    """Get the Notion income database ID."""
-    return _config.get('income_database_id')
+def get_account_linking_id() -> Optional[str]:
+    """Get the Notion account linking ID.
 
+    Retrieves the Notion page ID used for linking expenses to accounts.
 
-def get_account_linking_id():
-    """Get the Notion account linking ID."""
+    Returns:
+        The account linking ID string, or None if not configured
+    """
     return _config.get('account_linking_id')
 
 
-def get_data_dir():
-    """Get the data directory path."""
+def get_data_dir() -> Path:
+    """Get the data directory path.
+
+    Calculates the path to the data directory relative to the project root.
+
+    Returns:
+        Path object pointing to the data directory
+    """
     # Get project root (ExpenseTracker/)
     project_root = Path(__file__).parent.parent.parent
     return project_root / 'data'
 
 
-def get_categories_dir():
-    """Get the categories data directory path."""
+def get_categories_dir() -> Path:
+    """Get the categories data directory path.
+
+    Returns the path to the directory containing category JSON files.
+
+    Returns:
+        Path object pointing to the categories directory
+    """
     return get_data_dir() / 'categories'
 
 
+<<<<<<< Updated upstream
 def get_screenshots_dir():
     """Get the screenshots directory path."""
     return get_data_dir() / 'screenshots'
+=======
+def get_pdf_dir() -> Path:
+    """Get the PDF files directory path.
+
+    Returns the path to the directory containing PDF statement files.
+
+    Returns:
+        Path object pointing to the PDF directory
+    """
+    return get_data_dir() / 'pdf'
+>>>>>>> Stashed changes

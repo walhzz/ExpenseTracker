@@ -1,27 +1,33 @@
 """
-OCR and image processing module.
+PDF table extraction module.
 
-Handles image loading and text extraction using Tesseract OCR.
+Handles extraction of tables from PDF files using pdfplumber.
 """
 
-from PIL import Image
-import pytesseract
+from typing import Union
+from pathlib import Path
+
 import pdfplumber
-import pandas as pd
 
 
-def load_image(image_path):
-    """
-    Open and return a PIL Image object from a file path.
+def extract_table_transactions(pdf_paths: list[Union[str, Path]]) -> list[list[str]]:
+    """Extract all table rows from multiple PDF files.
+
+    Opens each PDF file, extracts all tables from every page, and combines
+    them into a single list of table rows. Each table row is a list of
+    cell values as strings.
 
     Args:
-        image_path: Path to the image file
+        pdf_paths: List of paths to PDF files to process
 
     Returns:
-        PIL Image object
+        List of table rows extracted from all PDFs. Each row is a list
+        of cell values (strings). The rows are flattened from all tables
+        across all pages of all PDFs.
     """
-    return Image.open(image_path)
+    tables_set: list[list[str]] = []
 
+<<<<<<< Updated upstream
 
 def extract_text_from_image(img, lang='eng'):
     """
@@ -66,3 +72,13 @@ def extract_table_transactions(pdf_path):
     return transactions_table
             
                     
+=======
+    for path in pdf_paths:
+        with pdfplumber.open(path) as pdf:
+            for page in pdf.pages:
+                extracted_tables = page.extract_tables()
+                for table in extracted_tables:
+                    tables_set += table
+
+    return tables_set
+>>>>>>> Stashed changes

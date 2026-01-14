@@ -1,24 +1,34 @@
 """
 Notion API client module.
 
-Handles creation of expense and income records in Notion databases.
+Handles creation of expense records in Notion databases.
 """
 
-from src.categorization import categorize_expense, get_notion_id_for_category
+from typing import Any, Optional, TypedDict
+from notion_client import Client
 
-def page_creation_exception(notion_client, new_page_data):
-    """
-    Creates a new page in Notion using the provided client and page data.
-    Handles any errors that may occur during the page creation process.
+
+class TransactionClass(TypedDict):
+    """Type definition for transaction classification data."""
+    id: str
+    name: str
+    expense: str
+
+
+def _page_creation_exception(notion_client: Client, new_page_data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    """Create a new page in Notion using the provided client and page data.
+
+    Wraps the Notion API page creation call with error handling to ensure
+    failures are logged but don't crash the application.
 
     Args:
-        notion_client: Notion client instance
-        new_page_data: Notion new data page template
+        notion_client: Authenticated Notion client instance
+        new_page_data: Dictionary containing the page structure conforming
+            to Notion's page creation API schema
 
     Returns:
-        Response from Notion API, or None if error        
+        The API response dictionary on success, or None if an error occurred
     """
-    
     try:
         response = notion_client.pages.create(**new_page_data)
         print("New page created:", response)
@@ -27,24 +37,36 @@ def page_creation_exception(notion_client, new_page_data):
         print("Error creating page:", e)
         return None
 
-def create_expense_record(notion_client, database_id, text, date, total_amount, title, category_id, account_id):
-    """
-    Create a new expense record in Notion database.
+
+def _create_expense_record(
+    notion_client: Client,
+    database_id: str,
+    text: str,
+    date: str,
+    total_amount: float,
+    title: str,
+    category_id: str,
+    account_id: str
+) -> Optional[dict[str, Any]]:
+    """Create a new expense record in a Notion database.
+
+    Constructs the proper Notion page structure for an expense entry and
+    creates it in the specified database.
 
     Args:
-        notion_client: Notion client instance
-        database_id: Notion database ID for expenses
-        text: Expense description text
-        date: Transaction date in ISO format
-        total_amount: Amount of the expense
-        title: Title for the expense entry
-        category_id: Category relation ID
-        account_id: Account page ID for linking
+        notion_client: Authenticated Notion client instance
+        database_id: ID of the Notion database to add the expense to
+        text: Expense description text (stored in 'Text' rich_text field)
+        date: Transaction date in ISO 8601 format (YYYY-MM-DD)
+        total_amount: Amount of the expense as a positive number
+        title: Title for the expense entry (stored in 'Expenses' title field)
+        category_id: Notion page ID of the category to link this expense to
+        account_id: Notion page ID of the account to link this expense to
 
     Returns:
-        Response from Notion API, or None if error
+        The API response dictionary on success, or None if an error occurred
     """
-    new_page_data = {
+    new_page_data: dict[str, Any] = {
         "parent": {"database_id": database_id},
         "properties": {
             "Date": {
@@ -94,24 +116,38 @@ def create_expense_record(notion_client, database_id, text, date, total_amount, 
         }
     }
 
-    return page_creation_exception(notion_client,new_page_data)
+    return _page_creation_exception(notion_client, new_page_data)
 
 
-def create_income_record(notion_client, database_id, description, date, amount, account_id):
-    """
-    Create a new income record in Notion database.
+def process(
+    notion_client: Client,
+    transaction_class: TransactionClass,
+    expense_db_id: str,
+    date: str,
+    amount: float,
+    account_id: str
+) -> None:
+    """Process a single transaction and create a Notion expense entry.
+
+    Takes a categorized transaction and creates a corresponding expense
+    record in Notion. Only processes negative amounts (expenses); positive
+    amounts (income) are skipped.
 
     Args:
-        notion_client: Notion client instance
-        database_id: Notion database ID for income
-        description: Income description/type
-        date: Transaction date in ISO format
-        amount: Amount of income
-        account_id: Account page ID for linking
+        notion_client: Authenticated Notion client instance
+        transaction_class: Dictionary containing categorization info with keys:
+            - id: Category's Notion page ID
+            - name: Category name
+            - expense: Expense description text
+        expense_db_id: ID of the Notion expense database
+        date: Transaction date in ISO 8601 format (YYYY-MM-DD)
+        amount: Transaction amount (negative for expenses)
+        account_id: Notion page ID of the account to link this expense to
 
     Returns:
-        Response from Notion API, or None if error
+        None
     """
+<<<<<<< Updated upstream
     new_page_data = {
         "parent": {"database_id": database_id},
         "properties": {
@@ -208,3 +244,26 @@ def process_transactions(notion_client, expense_db_id, income_db_id, description
         except Exception as e:
             print(f"Error processing transaction '{description}' on {date}: {e}")
             continue
+=======
+    # Skip if amount is not negative (income, not expense)
+    if amount > 0:
+        return
+
+    description = transaction_class['expense']
+    transaction_id = transaction_class["id"]
+
+    try:
+        # Process expense (negative amount)
+        _create_expense_record(
+            notion_client,
+            expense_db_id,
+            description,
+            date,
+            abs(amount),
+            description,
+            transaction_id,
+            account_id
+        )
+    except Exception as e:
+        print(f"Error processing expense: {e}")
+>>>>>>> Stashed changes
