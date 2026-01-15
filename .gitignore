@@ -36,6 +36,9 @@ env/
 *.swo
 *~
 
+# Claude Code local settings
+.claude/*.local.*
+
 # Temporary files
 temp_file.xlsx
 *.tmp

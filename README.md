@@ -1,117 +1,126 @@
 # Expense Tracker
 
-Automated expense processing from bank statements using OCR, pattern matching, and Notion API integration.
+![Desjardins Logo](data/images/desjardinLogo.png)
 
-## Features
+## Why I Built This
 
-- 📸 **OCR Processing**: Extract text from bank statement images using Tesseract
-- 🏦 **Desjardins Parser**: Parse and clean Desjardins bank transaction data
-- 🏷️ **Smart Categorization**: Pattern matching with interactive learning
-- 📊 **Notion Integration**: Automatic upload to Notion databases
-- 🔐 **Secure Configuration**: Environment variables for sensitive data
+I wanted one simple thing: to know exactly where my money goes each month. Sounds basic, right? But as a Desjardins customer, this turned out to be surprisingly difficult.
 
-## Project Structure
+### The Problem
+
+Like many people, I use Desjardins for my banking. When I decided to get serious about tracking my expenses, I quickly ran into walls:
+
+**No API Access** - Unlike some banks that offer developer APIs, getting programmatic access to Desjardins data is essentially impossible for regular customers. There's no official API, and the unofficial routes are complex and unreliable.
+
+**No Compatible Apps** - I tried finding expense tracking apps that could connect to Desjardins. Most popular budgeting apps either don't support Canadian banks at all, or specifically don't work with Desjardins. The ones that claim to support it often have connection issues or missing features.
+
+**AccèsD's Built-in Tracking Falls Short** - Desjardins does have some expense tracking features in AccèsD, but I found them inaccurate. The auto-categorization frequently misclassifies transactions, and there's no easy way to export the data or integrate it with my personal finance workflow in Notion.
+
+### What I Actually Wanted
+
+I needed a system that would:
+
+- Extract my transaction data accurately from Desjardins statements
+- Let me categorize expenses my way, not some algorithm's best guess
+- Learn my spending patterns over time
+- Sync everything to Notion where I manage my finances
+
+Since no existing solution did this, I built my own.
+
+---
+
+## The Solution
+
+This project processes Desjardins credit card PDF statements, extracts every transaction, and uploads them to my Notion expense database. It handles the quirky formatting of Desjardins statements and learns to categorize recurring merchants automatically.
+
+### Key Features
+
+- **PDF Table Extraction** - Uses pdfplumber to accurately extract transaction tables from Desjardins credit card statements
+- **Desjardins-Specific Parsing** - Handles the particular date formats, amount displays, and table structures used by Desjardins
+- **Smart Categorization** - Pattern matching that learns from your categorization choices and remembers them for future transactions
+- **Notion Integration** - Direct upload to Notion databases with proper relations and properties
+- **Interactive Workflow** - Review and edit transactions before uploading, with optional Excel editing for corrections
+
+---
+
+## Technical Documentation
+
+### Architecture
+
+The application follows a pipeline workflow:
+
+1. **PDF Processing** - Extract tables from Desjardins PDF statements using pdfplumber
+2. **Transaction Parsing** - Parse dates, amounts, and descriptions into structured data
+3. **Categorization** - Match merchants to categories using learned patterns
+4. **Notion Upload** - Create expense records in your Notion database
+
+### Project Structure
 
 ```
 expense-tracker/
 ├── src/
-│   ├── __init__.py
-│   ├── main.py                 # Entry point CLI
-│   ├── ocr/
-│   │   ├── __init__.py
-│   │   └── extraction.py       # Tesseract + image processing
-│   ├── parsing/
-│   │   ├── __init__.py
-│   │   └── desjardins.py       # Transaction parsing & data transformation
 │   ├── categorization/
-│   │   ├── __init__.py
-│   │   └── categories.py       # Category management logic
+│   │   └── categories.py       # Category management & pattern matching
 │   ├── notion_api/
-│   │   ├── __init__.py
 │   │   └── client.py           # Notion database operations
+│   ├── ocr/
+│   │   └── extraction.py       # PDF table extraction (pdfplumber)
+│   ├── parsing/
+│   │   └── desjardins.py       # Transaction parsing & data transformation
 │   └── utils/
-│       ├── __init__.py
 │       ├── config.py           # Environment configuration
-│       └── file_handler.py     # JSON loading/saving
+│       └── file_handler.py     # File I/O utilities
 ├── data/
 │   ├── categories/
-│   │   ├── Database.json       # List of category names
-│   │   ├── id.json             # Notion page IDs
-│   │   └── {Category}.json     # Pattern files for each category
-│   └── screenshots/            # Input images go here
+│   │   ├── Database.json       # Category definitions with Notion IDs & patterns
+│   │   └── id.json             # Legacy ID mapping
+│   ├── images/                 # Static assets
+│   └── pdf/                    # Input PDF statements
 ├── tests/
-│   ├── __init__.py
-│   ├── test_ocr.py
-│   ├── test_parsing.py
-│   ├── test_categorization.py
-│   └── test_integration.py
+│   └── notion_api/
+│       └── test_client.py      # Notion API unit tests
+├── main.py                     # Application entry point
 ├── .env                        # Your credentials (not in git)
 ├── .env.example                # Template for .env
-├── .gitignore
-├── requirements.txt
-├── README.md
-├── script4_legacy.py           # Original monolithic script (backup)
-└── script4.py                  # Backward compatibility wrapper
+└── requirements.txt
 ```
 
-## Installation
+### Installation
 
-### Prerequisites
+#### Prerequisites
 
 - Python 3.10+
-- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) installed
 - Notion account with API access
 
-### Setup
+#### Setup
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/walhzz/ExpenseTracker.git
 cd ExpenseTracker
 ```
 
 2. **Install dependencies**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. **Configure environment variables**
+
 ```bash
 cp .env.example .env
 # Edit .env with your credentials
 ```
 
 4. **Set up data directory**
-   - Place your bank statement images in `data/screenshots/`
+   - Place your Desjardins PDF statements in `data/pdf/`
    - Configure categories in `data/categories/Database.json`
-   - Add Notion page IDs in `data/categories/id.json`
 
-## Usage
+### Configuration
 
-### Run the application
-
-```bash
-python -m src.main
-```
-
-Or using the legacy interface:
-
-```bash
-python script4.py
-```
-
-### Workflow
-
-1. **Image Processing**: Place .jpeg bank statement images in `data/screenshots/` or configure `TRANSACTION_DIRS` in `.env`
-2. **OCR Extraction**: Application reads all images and extracts text
-3. **Transaction Parsing**: Parses Desjardins-specific format (dates, amounts, descriptions)
-4. **Interactive Editing**: Optional Excel editing for corrections
-5. **Categorization**: Automatic categorization with manual override for unknowns
-6. **Notion Upload**: Creates expense/income records in your Notion databases
-
-## Configuration
-
-### Environment Variables (.env)
+#### Environment Variables (.env)
 
 ```env
 # Notion API
@@ -120,81 +129,84 @@ EXPENSE_DATABASE_ID=your_expense_database_id
 INCOME_DATABASE_ID=your_income_database_id
 ACCOUNT_LINKING_ID=your_account_linking_id
 
-# Tesseract OCR
-TESSERACT_PATH=C:\Program Files\Tesseract-OCR\tesseract.exe
-
 # Transaction Directories (comma-separated)
 TRANSACTION_DIRS=C:\Users\YourName\iCloudDrive\Transaction
 ```
 
-### Category Setup
+#### Category Database (data/categories/Database.json)
 
-**data/categories/Database.json**
+This file defines your expense categories and links them to your Notion database. Location: `data/categories/Database.json`
+
 ```json
 [
-  "Grocery",
-  "Restaurant",
-  "Transport",
-  "Entertainment"
+  {
+    "id": "your_notion_page_id_for_groceries",
+    "name": "Groceries",
+    "expenses": ["Costco", "Metro", "Loblaws"]
+  },
+  {
+    "id": "your_notion_page_id_for_restaurants",
+    "name": "Restaurants",
+    "expenses": ["McDonald's", "Pizza Hut"]
+  }
 ]
 ```
 
-**data/categories/Grocery.json**
-```json
-[
-  "maxi",
-  "dollarama",
-  "walmart"
-]
+**Field descriptions:**
+
+| Field      | Description                                                                                                                                                     |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`       | The Notion page ID for this category. Found in your Notion database URL when viewing the category page.                                                         |
+| `name`     | Display name for the category. Must match exactly with your Notion database category names.                                                                     |
+| `expenses` | Array of merchant name patterns. When a transaction description contains any of these strings (case-insensitive), it's automatically assigned to this category. |
+
+**Important notes:**
+
+- The `id` must be a valid Notion page ID from your expense categories database
+- New merchant patterns are automatically added to `expenses` when you categorize unknown transactions
+- Pattern matching is case-insensitive and uses substring matching (e.g., "Metro" matches "METRO PLUS MONTREAL QC")
+
+### Usage
+
+```bash
+python -m src.main
 ```
 
-## Development
+The interactive CLI will guide you through:
 
-### Run tests
+1. Selecting PDF files to process
+2. Reviewing extracted transactions (with optional Excel editing)
+3. Categorizing any unknown merchants
+4. Uploading to Notion
+
+### Running Tests
 
 ```bash
 pytest tests/
 ```
 
-### Project Architecture
-
-- **src/ocr**: Image processing and OCR text extraction
-- **src/parsing**: Bank statement parsing and data transformation
-- **src/categorization**: Pattern-based expense categorization
-- **src/notion_api**: Notion database API integration
-- **src/utils**: Configuration management and file I/O
+---
 
 ## Version History
 
 ### v2.0.0 (Current)
-- ✅ Modular architecture with src/, data/, tests/
-- ✅ Improved code organization and maintainability
-- ✅ Environment variable configuration
-- ✅ Comprehensive test suite
-- ✅ Better separation of concerns
+
+- Migrated from OCR/image processing to direct PDF table extraction
+- Modular architecture with clear separation of concerns
+- Environment variable configuration
+- Interactive CLI workflow
 
 ### v1.0.0 (Legacy)
-- Single monolithic script (script4_legacy.py)
-- Basic OCR and Notion integration
 
-## Contributing
+- Single monolithic script
+- Tesseract OCR-based image processing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is private and for personal use.
+---
 
 ## Author
 
 **Walid**
 
-## Acknowledgments
+## License
 
-- Built with [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
-- Uses [Notion API](https://developers.notion.com/)
-- Powered by Python 🐍
+This project is private and for personal use.
