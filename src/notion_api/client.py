@@ -147,104 +147,6 @@ def process(
     Returns:
         None
     """
-<<<<<<< Updated upstream
-    new_page_data = {
-        "parent": {"database_id": database_id},
-        "properties": {
-            "Date ( Deposite)": {
-                "date": {
-                    "start": date,
-                    "end": None
-                }
-            },
-            "Notes": {
-                "rich_text": [
-                    {
-                        "text": {
-                            "content": description
-                        }
-                    }
-                ]
-            },
-            "Amount": {
-                "number": amount
-            },
-            "Accounts": {
-                "relation": [
-                    {
-                        "id": account_id
-                    }
-                ]
-            }
-        }
-    }
-
-    return page_creation_exception(notion_client,new_page_data)
-
-
-def process_transactions(notion_client, expense_db_id, income_db_id, descriptions, dates, amounts, account_id):
-    """
-    Process all transactions and create Notion entries.
-
-    Routes transactions to expense or income based on amount sign.
-    Negative amounts are expenses, positive are income.
-
-    Args:
-        notion_client: Notion client instance
-        expense_db_id: Notion expense database ID
-        income_db_id: Notion income database ID
-        descriptions: List of transaction descriptions
-        dates: List of transaction dates
-        amounts: List of transaction amounts
-        account_id: Account page ID for linking
-    
-    Raises:
-        ValueError: If input lists have unequal lengths
-    """
-    # Validate input lengths
-    if not (len(descriptions) == len(dates) == len(amounts)):
-        raise ValueError(
-            f"Input lists have unequal lengths: "
-            f"descriptions={len(descriptions)}, dates={len(dates)}, amounts={len(amounts)}"
-        )
-
-    # Process each transaction
-    for description, date, amount in zip(descriptions, dates, amounts):
-        
-        # Skip zero amounts
-        if amount == 0:
-            continue
-        
-        try:
-            if amount < 0:
-                # Process expense (negative amount)
-                category = categorize_expense(description, date, amount)
-                category_id = get_notion_id_for_category(category)
-                
-                create_expense_record(
-                    notion_client,
-                    expense_db_id,
-                    description,
-                    date,
-                    abs(amount),  # Convert to positive
-                    description,
-                    category_id,
-                    account_id
-                )
-            else:
-                # Process income (positive amount)
-                create_income_record(
-                    notion_client,
-                    income_db_id,
-                    description,
-                    date,
-                    amount,
-                    account_id
-                )
-        except Exception as e:
-            print(f"Error processing transaction '{description}' on {date}: {e}")
-            continue
-=======
     # Skip if amount is not negative (income, not expense)
     if amount > 0:
         return
@@ -266,4 +168,3 @@ def process_transactions(notion_client, expense_db_id, income_db_id, description
         )
     except Exception as e:
         print(f"Error processing expense: {e}")
->>>>>>> Stashed changes

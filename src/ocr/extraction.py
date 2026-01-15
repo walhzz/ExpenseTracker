@@ -27,52 +27,6 @@ def extract_table_transactions(pdf_paths: list[Union[str, Path]]) -> list[list[s
     """
     tables_set: list[list[str]] = []
 
-<<<<<<< Updated upstream
-
-def extract_text_from_image(img, lang='eng'):
-    """
-    Extract text from an image using Tesseract OCR.
-
-    Args:
-        img: PIL Image object
-        lang: Language for OCR (default: 'eng')
-
-    Returns:
-        Extracted text as string
-    """
-    return pytesseract.image_to_string(img, lang=lang)
-
-
-def process_multiple_images(image_paths):
-    """
-    Process multiple images and concatenate extracted text.
-
-    Args:
-        image_paths: List of image file paths
-
-    Returns:
-        Concatenated text from all images
-    """
-    text = ''
-    for image_path in image_paths:
-        img = load_image(image_path)
-        text += ' ' + extract_text_from_image(img)
-    return text
-
-
-def extract_table_transactions(pdf_path):
-    transactions_table = []
-
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-
-            tables = page.extract_tables()
-            transactions_table.append(tables)
-
-    return transactions_table
-            
-                    
-=======
     for path in pdf_paths:
         with pdfplumber.open(path) as pdf:
             for page in pdf.pages:
@@ -81,4 +35,3 @@ def extract_table_transactions(pdf_path):
                     tables_set += table
 
     return tables_set
->>>>>>> Stashed changes

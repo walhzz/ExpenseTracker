@@ -7,19 +7,10 @@ Handles file system operations, directory validation, and JSON data storage.
 import os
 import glob
 import json
-<<<<<<< Updated upstream
-import sys
-=======
->>>>>>> Stashed changes
 from pathlib import Path
 from typing import Any, Optional, Union
 
 
-<<<<<<< Updated upstream
-def find_jpeg_files(directory):
-    """
-    Find all .jpeg files in a directory.
-=======
 def is_file_open(file_path: str, timeout: int = 30) -> bool:
     """Check if a file is currently open by another process.
 
@@ -70,7 +61,6 @@ def find_pdf_files(directory: Union[str, Path]) -> list[str]:
 
     Searches the specified directory for files with .pdf extension
     and prints the list of files found.
->>>>>>> Stashed changes
 
     Args:
         directory: Directory path to search for PDF files
@@ -78,24 +68,6 @@ def find_pdf_files(directory: Union[str, Path]) -> list[str]:
     Returns:
         List of full paths to PDF files found, empty list if none found
     """
-<<<<<<< Updated upstream
-    jpeg_paths = glob.glob(os.path.join(directory, '*.jpeg'))
-
-    if not jpeg_paths:
-        print("No jpeg files found in the directory.")
-        return []
-
-    print("Jpeg files found:")
-    for file in jpeg_paths:
-        print(file)
-
-    return jpeg_paths
-
-
-def verify_directory(directory):
-    """
-    Verify if a directory exists.
-=======
     pdf_paths = glob.glob(os.path.join(str(directory), '*.pdf'))
 
     if not pdf_paths:
@@ -114,7 +86,6 @@ def find_valid_directory(directories: list[str]) -> str:
 
     Iterates through the provided directory paths and returns the first
     one that exists and is a valid directory.
->>>>>>> Stashed changes
 
     Args:
         directories: List of directory paths to validate

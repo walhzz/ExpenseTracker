@@ -4,34 +4,11 @@ Desjardins bank statement parsing module.
 Handles PDF credit statement parsing specific to Desjardins bank statements.
 """
 
-<<<<<<< Updated upstream
-import re
-import os
-=======
 from typing import Any, Union
 from datetime import datetime
 
->>>>>>> Stashed changes
 import pandas as pd
 
-<<<<<<< Updated upstream
-#valide_sqc = {['Date de transaction\nJ M', "Date d'inscription\nJ M", 'Description', 'Remises', 'Montant'],}
-
-
-def parsing_extraction_pdf(data):
-    """Parse: FOR_LOOP > Page > Table"""
-    pages = []
-    
-    for page_item in data:  # FOR_LOOP sur les pages
-        page = {"tables": []}
-        
-        for table_item in page_item:  # Parcourir les tables
-            page["tables"].append(table_item)
-        
-        pages.append(page)
-        print(pages)
-    #return pages
-=======
 
 def clean_date(date_str: str) -> str:
     """Convert a date string in 'DD MM' format to ISO 8601 format.
@@ -178,4 +155,3 @@ def detect_transaction_table(table: list[Any]) -> bool:
         return False
 
     return "Transactions effectuées" in first_elem
->>>>>>> Stashed changes

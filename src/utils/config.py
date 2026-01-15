@@ -120,11 +120,6 @@ def get_categories_dir() -> Path:
     return get_data_dir() / 'categories'
 
 
-<<<<<<< Updated upstream
-def get_screenshots_dir():
-    """Get the screenshots directory path."""
-    return get_data_dir() / 'screenshots'
-=======
 def get_pdf_dir() -> Path:
     """Get the PDF files directory path.
 
@@ -134,4 +129,3 @@ def get_pdf_dir() -> Path:
         Path object pointing to the PDF directory
     """
     return get_data_dir() / 'pdf'
->>>>>>> Stashed changes
